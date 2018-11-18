@@ -1,0 +1,7 @@
+{
+  "name": "pmodoro",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "ionic-angular"
+}
