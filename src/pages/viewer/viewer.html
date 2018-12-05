@@ -1,0 +1,39 @@
+<ion-header>
+</ion-header>
+
+<ion-content padding>
+
+<ion-toolbar>
+  <div class="timer-name" *ngIf="active && active.timer" text-center>
+    {{active.timer.name}}
+  </div>
+  <div *ngIf="active && active.timer" text-center class="timer-rounds">
+    <ion-icon class="round" *ngFor="let round of rounds" name="water"></ion-icon>
+  </div>
+</ion-toolbar>
+
+  <div class="progress-wrapper centered" ion-grid *ngIf="running">
+
+    <div class="progress-bar" ion-row align-items-center>
+
+      <round-progress [current]="percentLeft()" [max]="100" [rounded]="false" [responsive]="true" [color]="'#488AFF'"></round-progress>
+
+      <button ion-button type="button" name="button" class="progress-button centered" clear round (click)="pause()">
+        {{running.minutes}}:{{running.seconds | zeroPad:2}}
+      </button>
+      <div *ngIf="paused" class="blink small-text centered">
+        paused
+      </div>
+
+    </div>
+
+    <div ion-row ion-grid>
+      <div class="button-bar" ion-row align-items-center>
+        <button *ngIf="paused" (click)="play()" ion-col ion-button><ion-icon name="play"></ion-icon></button>
+        <button *ngIf="!paused" (click)="pause()" ion-col ion-button><ion-icon name="pause"></ion-icon></button>
+        <button ion-col (click)="stop()" ion-button><ion-icon name="square"></ion-icon></button>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

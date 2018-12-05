@@ -1,0 +1,85 @@
+page-viewer {
+
+  .centered {
+    position: absolute;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .timer-name {
+    color: color($colors, primary);
+    font-size: 2em;
+  }
+
+  .timer-rounds {
+    .round {
+      color: color($colors, primary);
+      margin: 0.5em;
+    }
+  }
+
+  .progress-wrapper {
+    max-width: 80%;
+    margin-top: 50%;
+    left: 50%;
+
+    .progress-button {
+      margin: 0;
+      top: 45%;
+      left: 50%;
+      color: primary;
+      font-size: 3em;
+    }
+
+    .small-text {
+      color: primary;
+      font-size: 1.5em;
+      margin: 0;
+      top: 55%;
+      left: 50%;
+    }
+  }
+
+  .button-bar {
+    justify-content: center;
+
+    button {
+      max-height: 2.5em;
+      max-width: 2.5em;
+      margin: 1rem;
+    }
+  }
+  @keyframes blink {
+    0% {
+      color: primary;
+    }
+
+    50% {
+      color: lightgrey;
+    }
+
+    100% {
+      color: primary;
+    }
+  }
+  @-webkit-keyframes blink {
+    0% {
+      color: primary;
+    }
+
+    50% {
+      color: lightgrey;
+    }
+
+    100% {
+      color: primary;
+    }
+  }
+
+  .blink {
+    clear: both;
+    -webkit-animation: blink 2s linear infinite;
+    -moz-animation: blink 2s linear infinite;
+    animation: blink 2s linear infinite;
+  }
+}

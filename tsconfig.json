@@ -18,6 +18,7 @@
   ],
   "exclude": [
     "node_modules",
+    "platforms",
     "src/**/*.spec.ts",
     "src/**/__tests__/*.ts"
   ],

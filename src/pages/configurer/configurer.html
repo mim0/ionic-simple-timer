@@ -1,0 +1,47 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Timer Config</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <ion-list *ngIf="timer">
+    {{timer_key}}
+    <ion-item>
+      <ion-label color="primary" floating>
+        Title
+      </ion-label>
+      <ion-input type="text" [(ngModel)]="timer.name" (focus)="placeholder = 'My Timer'" (blur)="placeholder = ''" [placeholder]="placeholder"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label fixed color="primary">
+        Rounds
+      </ion-label>
+      <ion-input required min="1" max="10" type="number" [(ngModel)]="timer.rounds"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label fixed color="primary">
+        Work
+      </ion-label>
+      <ion-input required min="0" type="number" [(ngModel)]="timer.work.minutes"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label fixed color="primary">
+        Rest
+      </ion-label>
+      <ion-input min="0" type="number" [(ngModel)]="timer.rest.minutes"></ion-input>
+    </ion-item>
+    <ion-item></ion-item>
+  </ion-list>
+
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar text-center>
+    <button ion-button (click)="clear()">Clear</button>
+    <button ion-button color="secondary" (click)="save()" [disabled]="!saveEnabled()">Save</button>
+  </ion-toolbar>
+</ion-footer>
