@@ -72,10 +72,16 @@ export class ViewerPage {
 
   play() {
     this.paused = false;
+
+    // TODO: Starts timer
   }
 
   stop() {
     this.paused = false;
+  }
+
+  seeList() {
+    this.navCtrl.parent.select(1);
   }
 
 }

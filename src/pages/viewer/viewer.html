@@ -3,24 +3,31 @@
 
 <ion-content padding>
 
-<ion-toolbar>
-  <div class="timer-name" *ngIf="active && active.timer" text-center>
-    {{active.timer.name}}
-  </div>
-  <div *ngIf="active && active.timer" text-center class="timer-rounds">
-    <ion-icon class="round" *ngFor="let round of rounds" name="water"></ion-icon>
-  </div>
-</ion-toolbar>
+  <ion-toolbar>
 
-  <div class="progress-wrapper centered" ion-grid *ngIf="running">
+    <div class="timer-name" *ngIf="active && active.timer" text-center>
+      {{active.timer.name}}
+    </div>
+
+    <div *ngIf="active && active.timer" text-center class="timer-rounds">
+      <ion-icon class="round" *ngFor="let round of rounds" name="water"></ion-icon>
+    </div>
+
+  </ion-toolbar>
+
+  <div class="progress-wrapper centered" ion-grid *ngIf="!active || !active.timer">
+    <button ion-button (click)="seeList()">Select a timer</button>
+  </div>
+
+  <div class="progress-wrapper centered" ion-grid *ngIf="active && active.timer && running">
 
     <div class="progress-bar" ion-row align-items-center>
-
       <round-progress [current]="percentLeft()" [max]="100" [rounded]="false" [responsive]="true" [color]="'#488AFF'"></round-progress>
 
       <button ion-button type="button" name="button" class="progress-button centered" clear round (click)="pause()">
         {{running.minutes}}:{{running.seconds | zeroPad:2}}
       </button>
+
       <div *ngIf="paused" class="blink small-text centered">
         paused
       </div>

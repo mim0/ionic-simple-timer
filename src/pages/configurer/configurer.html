@@ -6,7 +6,6 @@
 
 <ion-content padding>
   <ion-list *ngIf="timer">
-    {{timer_key}}
     <ion-item>
       <ion-label color="primary" floating>
         Title
@@ -37,11 +36,12 @@
     <ion-item></ion-item>
   </ion-list>
 
+  <button ion-button (click)="clear()">Clear</button>
 </ion-content>
 
 <ion-footer>
   <ion-toolbar text-center>
-    <button ion-button (click)="clear()">Clear</button>
+    <button *ngIf="timer_key" ion-button color="danger" (click)="remove()">Delete</button>
     <button ion-button color="secondary" (click)="save()" [disabled]="!saveEnabled()">Save</button>
   </ion-toolbar>
 </ion-footer>

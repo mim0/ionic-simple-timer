@@ -24,6 +24,18 @@ export class ConfigurerPage {
     return this.timerProvider.isValid(this.timer);
   }
 
+  remove() {
+    if (this.timer_key) {
+        this.timerProvider.remove(this.timer_key)
+          .then(response => {
+            this.navCtrl.pop();
+          })
+          .catch(error => {
+            console.log(error);
+          })
+    }
+  }
+
   save() {
     if (this.timerProvider.isValid(this.timer)) {
       let timer = this.timerProvider.create(

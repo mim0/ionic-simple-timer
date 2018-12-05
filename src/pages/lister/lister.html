@@ -2,6 +2,9 @@
 
   <ion-navbar>
     <ion-title>Timers</ion-title>
+    <ion-buttons end>
+      <button ion-button color="primary" (click)="create()" icon-start><ion-icon name="add"></ion-icon>Add</button>
+   </ion-buttons>
   </ion-navbar>
 
 </ion-header>
@@ -12,7 +15,7 @@
     <ion-item-sliding *ngFor="let item of asyncList | async">
 
       <ion-item>
-        <div (click)="config(item)">
+        <div (click)="activate(item)">
           <h2>{{item.timer.name}}</h2>
           <p class="item-text">{{item.timer.rounds}} Rounds, {{item.timer.work.minutes}}:{{item.timer.work.seconds | zeroPad:2}}
             <span class="rest">/</span> {{item.timer.rest.minutes}}:{{item.timer.rest.seconds | zeroPad:2}}
@@ -20,7 +23,7 @@
         </div>
 
         <ion-avatar item-end>
-          <button ion-button (click)="activate(item)"><ion-icon name="play"></ion-icon></button>
+          <button ion-button (click)="config(item)" color="primary" clear><ion-icon name="settings"></ion-icon></button>
         </ion-avatar>
       </ion-item>
 
@@ -38,10 +41,10 @@
 
   </ion-list>
 
-  <ion-footer>
+  <!-- <ion-footer>
     <ion-toolbar text-right>
       <button ion-button color="secondary" (click)="create()" icon-start><ion-icon name="add"></ion-icon>new</button>
     </ion-toolbar>
-  </ion-footer>
+  </ion-footer> -->
 
 </ion-content>
