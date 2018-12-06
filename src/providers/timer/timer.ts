@@ -13,6 +13,27 @@ export class TimerProvider {
     private storer: StorerProvider,
     private notificator: NotificatorProvider
   ) {
+    this.getActiveTimer();
+  }
+
+  getActiveTimer() {
+    if (!this.activeTimer) {
+      this.notificator.all()
+        .then(lista => {
+          console.log('LISTA ACTIVA', lista);
+
+          if (lista && lista.length > 0) {
+            let id = lista[0].data.id;
+
+            this.storer.get(id)
+              .then(timer => {
+                this.activeTimer = timer;
+              })
+              .catch(err => console.log(err));
+          }
+        })
+        .catch(err => console.log(err));
+    }
   }
 
   activate(timerinfo) {
@@ -23,8 +44,12 @@ export class TimerProvider {
     this.notificator.destroy();
   }
 
-  play() {
-    
+  play(running_timer, round = 0) {
+    this.notificator.create(this.activeTimer, round, running_timer);
+  }
+
+  stop() {
+    this.notificator.destroy();
   }
 
   isValid(timer) {
@@ -59,6 +84,10 @@ export class TimerProvider {
   getAll() {
     console.log(this.storer.all());
     return this.storer.all();
+  }
+
+  getRunning() {
+    return this.notificator.all();
   }
 
 }

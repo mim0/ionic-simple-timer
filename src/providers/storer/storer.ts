@@ -20,6 +20,7 @@ export class StorerProvider {
     if (!timer_key) {
       timer_key = this.generateKey();
     }
+    timer.id = timer_key;
     return this.storage.set(timer_key, timer);
   }
 
@@ -41,6 +42,8 @@ export class StorerProvider {
     return listObs;
   }
 
-
+  get(timer_key) {
+    return this.storage.get(timer_key);
+  }
 
 }

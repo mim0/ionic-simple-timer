@@ -40,10 +40,10 @@ export class ConfigurerPage {
     if (this.timerProvider.isValid(this.timer)) {
       let timer = this.timerProvider.create(
         this.timer.name,
-        this.timer.work.minutes,
-        this.timer.work.seconds,
-        this.timer.rest.minutes,
-        this.timer.rest.seconds
+        Number(this.timer.work.minutes),
+        Number(this.timer.work.seconds),
+        Number(this.timer.rest.minutes),
+        Number(this.timer.rest.seconds)
       );
 
       this.timerProvider.save(this.timer, this.timer_key)

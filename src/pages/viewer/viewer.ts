@@ -11,10 +11,13 @@ export class ViewerPage {
 
   paused = false;
 
+  round = 0;
   rounds = [];
 
   active: any;
   running: any;
+
+  interval: any;
 
   constructor(
     public navCtrl: NavController,
@@ -49,17 +52,33 @@ export class ViewerPage {
   ionViewWillEnter() {
     this.active = this.timerProvider.activeTimer;
     this.setRunningTimer();
+
     if (this.active && this.active.timer) {
       this.rounds = this.getViewRounds(this.active.timer.rounds);
     }
   }
 
+  ionViewWillLeave() {
+    this.stopClock();
+  }
+
   setRunningTimer() {
-    console.log(this.active);
-    // TODO: Get running timer from the first expring notification
     if (this.timerProvider.temporalTimer) {
       this.running = this.timerProvider.temporalTimer.timer.work;
+      this.paused = true;
     }
+
+    this.timerProvider.getRunning()
+      .then(lista => {
+        console.log('LISTA ACTIVES', lista);
+
+        this.round = 0;
+        if (lista && lista.length > 0) {
+          // TODO: Get running timer from the first expring notification
+          this.round = this.timerProvider.activeTimer.rounds - lista.length;
+        }
+      })
+      .catch(err => console.error(err));
   }
 
   percentLeft() {
@@ -68,16 +87,67 @@ export class ViewerPage {
 
   pause() {
     this.paused = !this.paused;
+
+    if (this.paused) {
+      this.timerProvider.stop();
+      this.saveRunningTimer();
+      this.stopClock();
+
+    } else {
+      this.play();
+    }
   }
 
   play() {
     this.paused = false;
 
-    // TODO: Starts timer
+    // TODO: Obtener estos valores a partir de la ejecución
+    this.timerProvider.play(this.running, this.round);
+
+    this.startClock();
+  }
+
+  startClock() {
+    console.log(this.running);
+    console.log(this.round);
+    console.log(this.active);
+
+    this.interval = setInterval(() => {
+      this.running.seconds -= 1;
+      if (this.running.seconds < 0) {
+        this.running.seconds = 59;
+        this.running.minutes -= 1;
+
+        if (this.running.minutes < 0) {
+          this.running.seconds = 0;
+          this.running.minutes = 0;
+
+          this.round += 1;
+
+          // TODO: Cambiar a la siguiente ronda
+          // this.stop();
+        }
+      }
+    }, 1000);
+  }
+
+  stopClock() {
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
   }
 
   stop() {
-    this.paused = false;
+    this.paused = true;
+    this.stopClock();
+    this.timerProvider.stop();
+    this.setRunningTimer();
+  }
+
+  saveRunningTimer() {
+    // TODO: Get round number
+    // TODO: Get current round time left
+    // TODO: Save active timer info
   }
 
   seeList() {

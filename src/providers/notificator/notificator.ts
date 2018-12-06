@@ -10,6 +10,10 @@ export class NotificatorProvider {
 
   }
 
+  all() {
+    return this.notificator.getAll();
+  }
+
   destroy() {
     // Info: this clears the triggered notifications
     // this.notificator.clearAll();
@@ -17,17 +21,18 @@ export class NotificatorProvider {
     return this.notificator.cancelAll();
   }
 
-  create(timer, start_at_round = 0, running_timer?) {
-    let notifications = this.calculate(timer, start_at_round);
+  create(activeTimer, start_at_round = 0, running_timer?) {
+    let notifications = this.calculate(activeTimer.timer, start_at_round);
 
     if (running_timer) {
-      let running = this.calculateRunning(running_timer, timer, start_at_round);
+      let running = this.calculateRunning(running_timer, activeTimer.timer, start_at_round);
 
       running.forEach((rnoti, index) => {
         notifications.splice(index, 1, rnoti);
       });
     }
 
+    console.log(notifications);
     this.notificator.schedule(notifications);
   }
 
@@ -35,21 +40,25 @@ export class NotificatorProvider {
     let notifications = [];
 
     let start = this.getTime((new Date()).getTime(), running_timer);
-    notifications.push(this.getBody(timer.name, start_at_round + 1, start));
+    notifications.push(this.build(timer, start_at_round + 1, start));
 
     if (!running_timer.isRest) {
         start = this.getTime(start, timer.rest);
-        notifications.push(this.getBody(timer.name, start_at_round + 1, start));
+        notifications.push(this.build(timer, start_at_round + 1, start));
     }
+
+    console.log('calculate running');
+    console.log(notifications);
 
     return notifications;
   }
 
-  private getBody(name, round, trigger_time_millis) {
+  private build(timer, round, trigger_time_millis) {
     return {
-      title: `Round ${round}: ${name}`,
-      text: `Round ${round}: ${name}`,
-      trigger: { at: new Date(trigger_time_millis) }
+      title: `Round ${round}: ${timer.name}`,
+      text: `Round ${round}: ${timer.name}`,
+      trigger: { at: new Date(trigger_time_millis) },
+      data: { timer_id: timer.id }
     }
   }
 
@@ -59,10 +68,10 @@ export class NotificatorProvider {
 
     for (let round = start_at_round + 1; round < timer.rounds + 1; round++) {
       let working_time = this.getTime(start, timer.work);
-      notifs.push(this.getBody(timer.name, round, working_time));
+      notifs.push(this.build(timer, round, working_time));
 
       let resting_time = this.getTime(start, timer.rest);
-      notifs.push(this.getBody(timer.name, round, resting_time));
+      notifs.push(this.build(timer, round, resting_time));
 
       start = resting_time;
     }
