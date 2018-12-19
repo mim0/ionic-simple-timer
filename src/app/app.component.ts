@@ -9,7 +9,7 @@ import { TimerProvider } from '../providers/timer/timer';
 @Component({
   templateUrl: 'app.html'
 })
-export class MyApp {
+export class SimpleTimer {
   rootPage: any = TabsPage;
 
   constructor(
