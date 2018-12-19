@@ -48,7 +48,6 @@ export class ConfigurerPage {
 
       this.timerProvider.save(this.timer, this.timer_key)
         .then(response => {
-          // console.log(response);
           this.navCtrl.pop();
         })
         .catch(error => {

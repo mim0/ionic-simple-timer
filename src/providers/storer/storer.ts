@@ -9,7 +9,6 @@ export class StorerProvider {
   constructor(
     private storage: Storage
   ) {
-
   }
 
   generateKey() {

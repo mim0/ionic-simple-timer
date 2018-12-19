@@ -17,6 +17,8 @@ export class ViewerPage {
   active: any;
   running: any;
 
+  ongoing: boolean;
+
   interval: any;
 
   constructor(
@@ -24,61 +26,149 @@ export class ViewerPage {
     public navParams: NavParams,
     private timerProvider: TimerProvider
   ) {
+    this.ongoing = false;
   }
-
-  /**
-
-    Hay tres tipos de timer en esta vista:
-      1. Activo: original almacenado.
-      2. Temporal: información de los rounds restantes
-      3. Running: round en marcha si hay alguno
-
-    Hasta ahora hemos trabajado con los timers almacenados en memoria.
-
-    Ahora tenemos que trabajar con los timers activados, por lo tanto cada timer
-    es en realidad una lista de notificaciones que se crean cuando el timer se
-    activa y se borran cuando el timer se para.
-
-    El timer temporal necesita almacenar información sobre los rounds restantes
-    y sobre el round inicial, ya que este podría estar definido por una cantidad
-    distinta de tiempo.
-
-  **/
 
   getViewRounds(rounds) {
     return Array(Number(rounds)).fill(rounds);
   }
 
   ionViewWillEnter() {
-    this.active = this.timerProvider.activeTimer;
-    this.setRunningTimer();
-
-    if (this.active && this.active.timer) {
-      this.rounds = this.getViewRounds(this.active.timer.rounds);
-    }
+    this.getViewerData();
   }
 
   ionViewWillLeave() {
+    this.timerProvider.getActiveTimer();
     this.stopClock();
   }
 
-  setRunningTimer() {
-    if (this.timerProvider.temporalTimer) {
-      this.running = this.timerProvider.temporalTimer.timer.work;
-      this.paused = true;
+  getViewerData() {
+    this.stopClock();
+    this.setStartTimer();
+
+    let running_timers = this.timerProvider.running_timer_list;
+
+    if (running_timers && running_timers.length > 0) {
+      this.getViewerDataFromRunning(running_timers);
+    } else {
+      this.getViewerDataFromTemporal();
+    }
+  }
+
+  getViewerDataFromRunning(running_timers) {
+    this.active = this.timerProvider.activeTimer;
+
+    this.getViewRounds(running_timers.length);
+    this.ongoing = true;
+
+    let now = Number((new Date()).getTime());
+
+    let closest: any = { trigger: { at: null } };
+    let diff_time = 0;
+
+    for (let i = 0; i < running_timers.length; i++) {
+      let rtm = Number(running_timers[i].trigger.at);
+
+      if (!closest.trigger.at) {
+        closest = running_timers[i];
+        diff_time = rtm - now;
+
+      } else {
+        if (rtm >= now) {
+          if (Number(closest.trigger.at) > rtm || Number(closest.trigger.at) < now) {
+            diff_time = rtm - now;
+            closest = running_timers[i];
+          }
+        }
+      }
     }
 
-    this.timerProvider.getRunning()
-      .then(lista => {
-        console.log('LISTA ACTIVES', lista);
+    if (diff_time > 0 && closest.data) {
+      this.paused = false;
+      this.setRunningTimer(diff_time, JSON.parse(closest.data).rest_or_work);
 
-        this.round = 0;
-        if (lista && lista.length > 0) {
-          // TODO: Get running timer from the first expring notification
-          this.round = this.timerProvider.activeTimer.rounds - lista.length;
+    } else {
+      this.reset();
+    }
+  }
+
+  getViewerDataFromTemporal() {
+    this.timerProvider.getTemporalTimer()
+      .then(temporal_timer => {
+        if (temporal_timer && temporal_timer.length > 0) {
+          let diff_time = 0;
+          let rest_or_work = '';
+
+          for (let i = 0; i < temporal_timer.length; i++) {
+            let inc = temporal_timer[i].increment;
+            diff_time = (diff_time === 0 || diff_time > inc) ? inc : diff_time;
+            rest_or_work = JSON.parse(temporal_timer[i].data).rest_or_work;
+          }
+
+          let seconds = diff_time / 1000;
+          let minutes = Math.floor(seconds / 60);
+
+          setTimeout(() => {
+            this.running = {
+              minutes: minutes,
+              seconds: Math.floor(seconds - (minutes * 60)),
+              rest_or_work: rest_or_work
+            };
+          }, 0);
+        } else {
+          this.reset();
         }
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.log(err);
+        this.reset();
+      });
+  }
+
+  reset() {
+    this.timerProvider.stop();
+    this.stopClock();
+
+    setTimeout(() => {
+      this.ongoing = false;
+      this.paused = true;
+      this.round = 0;
+
+      this.setStartTimer();
+
+      if (this.active && this.active.timer) {
+        this.running = this.active.timer.work;
+        this.getViewRounds(this.active.timer.rounds);
+      }
+    }, 0);
+  }
+
+  setStartTimer() {
+    if (this.timerProvider.activeTimer) {
+      this.active = JSON.parse(JSON.stringify(this.timerProvider.activeTimer));
+    }
+  }
+
+  setRunningTimer(diff_time?, rest_or_work?) {
+    console.log('setRunningTimer', { diff_time, rest_or_work })
+    if (!diff_time) {
+      this.reset();
+
+    } else {
+      this.paused = false;
+
+      let segundos = diff_time / 1000;
+      let minutos = Math.floor(segundos / 60);
+
+      setTimeout(() => {
+        this.running = {
+          minutes: minutos,
+          seconds: Math.floor(segundos - (minutos * 60)),
+          rest_or_work: rest_or_work
+        };
+        this.startClock();
+      }, 0);
+    }
   }
 
   percentLeft() {
@@ -89,7 +179,6 @@ export class ViewerPage {
     this.paused = !this.paused;
 
     if (this.paused) {
-      this.timerProvider.stop();
       this.saveRunningTimer();
       this.stopClock();
 
@@ -101,17 +190,19 @@ export class ViewerPage {
   play() {
     this.paused = false;
 
-    // TODO: Obtener estos valores a partir de la ejecución
-    this.timerProvider.play(this.running, this.round);
+    if (this.ongoing) {
+      // TODO: Activar temporal timer
+      this.timerProvider.continue();
+
+    } else {
+      this.ongoing = true;
+      this.timerProvider.play();
+    }
 
     this.startClock();
   }
 
   startClock() {
-    console.log(this.running);
-    console.log(this.round);
-    console.log(this.active);
-
     this.interval = setInterval(() => {
       this.running.seconds -= 1;
       if (this.running.seconds < 0) {
@@ -124,8 +215,7 @@ export class ViewerPage {
 
           this.round += 1;
 
-          // TODO: Cambiar a la siguiente ronda
-          // this.stop();
+          this.getViewerData();
         }
       }
     }, 1000);
@@ -138,16 +228,12 @@ export class ViewerPage {
   }
 
   stop() {
-    this.paused = true;
-    this.stopClock();
     this.timerProvider.stop();
-    this.setRunningTimer();
+    this.reset();
   }
 
   saveRunningTimer() {
-    // TODO: Get round number
-    // TODO: Get current round time left
-    // TODO: Save active timer info
+    this.timerProvider.pause();
   }
 
   seeList() {

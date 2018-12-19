@@ -21,10 +21,31 @@ export class ListerPage {
 
   ionViewWillEnter() {
     this.refresh();
+    if (this.timerProvider.oninit) {
+      this.timerProvider.oninit = false;
+
+      this.timerProvider.getRunning()
+        .then(running_timers => {
+          this.timerProvider.setRunningList(running_timers);
+
+          if (running_timers && running_timers.length > 0) {
+            let id = this.timerProvider.getTimerID(running_timers[0]);
+            
+            this.timerProvider.findActiveTimer(id)
+              .then(timer => {
+                this.timerProvider.activeTimer = { timer_key: id, timer };
+                if (running_timers && running_timers.length > 0) {
+                  this.navCtrl.parent.select(0);
+                }
+              })
+              .catch(err => console.log(err));
+          }
+        })
+        .catch(err => console.log(err));
+    }
   }
 
   activate(item) {
-    console.log(item);
     this.timerProvider.activate(item);
     this.navCtrl.parent.select(0);
   }
@@ -47,18 +68,6 @@ export class ListerPage {
         this.refresh();
       })
       .catch(error => console.log(error));
-  }
-
-  // TODO: Delete this function
-  mock() {
-    return {
-      list: [
-        this.timerProvider.create("Estudiar", 10, 25, 0, 5, 0),
-        this.timerProvider.create("Hacer Workout", 28, 0, 40, 0, 20),
-        this.timerProvider.create("Trabajar de Lunes a Viernes", 8, 25, 0, 5, 0),
-        this.timerProvider.create("Practicar piano", 2, 15, 0, 5, 0)
-      ]
-    }
   }
 
 }

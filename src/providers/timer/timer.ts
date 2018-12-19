@@ -7,7 +7,9 @@ import { NotificatorProvider } from '../notificator/notificator';
 export class TimerProvider {
 
   activeTimer: any;
-  temporalTimer: any;
+
+  running_timer_list: any[];
+  oninit: boolean;
 
   constructor(
     private storer: StorerProvider,
@@ -17,39 +19,86 @@ export class TimerProvider {
   }
 
   getActiveTimer() {
-    if (!this.activeTimer) {
-      this.notificator.all()
-        .then(lista => {
-          console.log('LISTA ACTIVA', lista);
+    this.running_timer_list = [];
 
-          if (lista && lista.length > 0) {
-            let id = lista[0].data.id;
+    this.notificator.all()
+      .then(running_timers => {
+        this.setRunningList(running_timers);
 
-            this.storer.get(id)
-              .then(timer => {
-                this.activeTimer = timer;
-              })
-              .catch(err => console.log(err));
-          }
-        })
-        .catch(err => console.log(err));
-    }
+        if (running_timers && running_timers.length > 0) {
+          let id = this.getTimerID(running_timers[0]);
+          this.findActiveTimer(id)
+            .then(timer => {
+              this.activeTimer = { timer_key: id, timer };
+            })
+            .catch(err => console.log(err));
+        }
+
+      })
+      .catch(err => console.log(err));
+  }
+
+  findActiveTimer(id) {
+    return this.storer.get(id);
+  }
+
+  setRunningList(running_timers) {
+    this.running_timer_list = running_timers;
+  }
+
+  getTimerID(running_timer) {
+    return JSON.parse(running_timer.data).id.toString();
   }
 
   activate(timerinfo) {
     this.activeTimer = timerinfo;
-    this.temporalTimer = timerinfo;
 
-    // TODO: Destroy all active notifications
     this.notificator.destroy();
   }
 
-  play(running_timer, round = 0) {
+  play(running_timer = null, round = 0) {
     this.notificator.create(this.activeTimer, round, running_timer);
+  }
+
+  continue() {
+    this.storer.get('temporal')
+      .then(temporal_timer => {
+        this.notificator.continue(temporal_timer);
+        this.notificator.destroy();
+        this.storer.remove('temporal');
+      })
+      .catch(err => console.log(err));
+  }
+
+  pause() {
+    this.notificator.all()
+      .then(running_timers => {
+        this.notificator.destroy();
+        
+        let now = Number((new Date()).getTime());
+        let temporal_timer = [];
+
+        running_timers.forEach(running_time => {
+          let increment = Number(running_time.trigger.at) - now;
+
+          if (increment > 0) {
+            temporal_timer.push({
+              increment: increment,
+              data: running_time.data,
+              text: running_time.text,
+              title: running_time.title
+            });
+          }
+        });
+
+        this.storer.save(temporal_timer, 'temporal');
+      })
+      .catch(err => console.log(err));
   }
 
   stop() {
     this.notificator.destroy();
+    this.storer.remove('temporal');
   }
 
   isValid(timer) {
@@ -64,11 +113,13 @@ export class TimerProvider {
       rounds: rounds || 1,
       work: {
         minutes: w_minutes || 0,
-        seconds: w_seconds || 0
+        seconds: w_seconds || 0,
+        rest_or_work: 'work'
       },
       rest: {
         minutes: r_minutes || 0,
-        seconds: r_seconds || 0
+        seconds: r_seconds || 0,
+        rest_or_work: 'rest'
       }
     }
   }
@@ -88,6 +139,10 @@ export class TimerProvider {
 
   getRunning() {
     return this.notificator.all();
+  }
+
+  getTemporalTimer() {
+    return this.storer.get('temporal');
   }
 
 }
